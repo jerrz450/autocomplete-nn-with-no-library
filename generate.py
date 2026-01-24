@@ -5,13 +5,15 @@ from value import Value
 from modules import Model
 from data import load_vocab
 
-def generate(num_samples=10, emb_dim=None, hidden_size=None):
+def generate(num_samples=10, emb_dim=None, hidden_size=None, data_file : str = None):
 
-    words, stoi, itos = load_vocab('names.txt')
+    words, stoi, itos = load_vocab(data_file)
 
     config = np.load('weights/config.npy', allow_pickle=True).item()
+ 
     if emb_dim is None:
         emb_dim = config['emb_dim']
+
     if hidden_size is None:
         hidden_size = config['hidden_size']
 
@@ -54,7 +56,9 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None):
         print(''.join(out))
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
+    parser.add_argument('--data_file_path', type=str, default='data/names.txt')
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--emb_dim', type=int, default=None)
     parser.add_argument('--hidden_size', type=int, default=None)
@@ -63,5 +67,6 @@ if __name__ == "__main__":
     generate(
         num_samples=args.num_samples,
         emb_dim=args.emb_dim,
-        hidden_size=args.hidden_size
+        hidden_size=args.hidden_size,
+        data_file=args.data_file_path
     )
