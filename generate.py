@@ -1,15 +1,22 @@
 import numpy as np
 import torch
+import argparse
 from value import Value
 from modules import Model
 from data import load_vocab
 
-def generate():
+def generate(num_samples=10, emb_dim=None, hidden_size=None):
 
     words, stoi, itos = load_vocab('names.txt')
 
+    config = np.load('weights/config.npy', allow_pickle=True).item()
+    if emb_dim is None:
+        emb_dim = config['emb_dim']
+    if hidden_size is None:
+        hidden_size = config['hidden_size']
+
     C = Value(np.load('weights/embeddings.npy'))
-    model = Model(32, [128, 27])
+    model = Model(emb_dim * 2, [hidden_size, 27])
 
     for i, layer in enumerate(model.layers):
 
@@ -24,7 +31,7 @@ def generate():
         bn.running_var = np.load(f'weights/bn{i}_running_var.npy')
         bn.training = False
 
-    for _ in range(10):
+    for _ in range(num_samples):
 
         out = []
         context = [0, 0]
@@ -47,4 +54,14 @@ def generate():
         print(''.join(out))
 
 if __name__ == "__main__":
-    generate()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_samples', type=int, default=10)
+    parser.add_argument('--emb_dim', type=int, default=None)
+    parser.add_argument('--hidden_size', type=int, default=None)
+    args = parser.parse_args()
+
+    generate(
+        num_samples=args.num_samples,
+        emb_dim=args.emb_dim,
+        hidden_size=args.hidden_size
+    )

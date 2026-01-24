@@ -1,1 +1,5 @@
 notebook/
+CONTEXT.md
+__pycache__/
+weights/*
+!weights/.gitkeep
