@@ -16,6 +16,7 @@ def train(
     batch_size=32,
     emb_dim=16,
     hidden_size=128,
+    context_size=4,
     train_frac=0.8,
     dev_frac=0.1
     ):
@@ -23,10 +24,13 @@ def train(
     words, stoi, itos = load_vocab(training_set)
     train_words, dev_words, test_words = split_data(words, train_frac, dev_frac)
 
+    vocab_size = len(stoi)
+    print(f"Vocabulary size: {vocab_size}")
+    print(f"Context size: {context_size}")
     print(f"Dataset splits: {len(train_words)} train, {len(dev_words)} dev, {len(test_words)} test")
 
-    C = Value(np.random.randn(27, emb_dim) * 0.01)
-    model = Model(emb_dim * 2, [hidden_size, 27])
+    C = Value(np.random.randn(vocab_size, emb_dim) * 0.01)
+    model = Model(emb_dim * context_size, [hidden_size, vocab_size])
     loss_fn = CrossEntropyLoss()
 
     for p in model.parameters():
@@ -40,7 +44,8 @@ def train(
         total_loss = 0.0
         count = 0
 
-        for xb, yb in dataloader(train_words, stoi, batch_size=batch_size):
+        for xb, yb in dataloader(train_words, stoi, batch_size=batch_size, context_size=context_size):
+
             xemb = Value(C.data[xb].reshape(len(xb), -1))
 
             logits = model(xemb)
@@ -72,7 +77,7 @@ def train(
 
         dev_loss = 0.0
         dev_count = 0
-        for xb, yb in dataloader(dev_words, stoi, batch_size=batch_size):
+        for xb, yb in dataloader(dev_words, stoi, batch_size=batch_size, context_size=context_size):
             xemb = Value(C.data[xb].reshape(len(xb), -1))
             logits = model(xemb)
             loss = loss_fn(logits, yb)
@@ -92,7 +97,7 @@ def train(
 
     test_loss = 0.0
     test_count = 0
-    for xb, yb in dataloader(test_words, stoi, batch_size=batch_size):
+    for xb, yb in dataloader(test_words, stoi, batch_size=batch_size, context_size=context_size):
         xemb = Value(C.data[xb].reshape(len(xb), -1))
         logits = model(xemb)
         loss = loss_fn(logits, yb)
@@ -102,7 +107,9 @@ def train(
     print(f"Final Test Loss: {test_loss/test_count:.4f}")
 
     np.save('weights/embeddings.npy', C.data)
-    np.save('weights/config.npy', {'emb_dim': emb_dim, 'hidden_size': hidden_size})
+    np.save('weights/config.npy', {'emb_dim': emb_dim, 'hidden_size': hidden_size, 'vocab_size': vocab_size, 'context_size': context_size})
+    np.save('weights/stoi.npy', stoi)
+    np.save('weights/itos.npy', itos)
 
     for i, layer in enumerate(model.layers):
         np.save(f'weights/layer{i}_W.npy', layer.W.data)
@@ -128,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--emb_dim', type=int, default=16)
     parser.add_argument('--hidden_size', type=int, default=128)
+    parser.add_argument('--context_size', type=int, default=4)
     parser.add_argument('--train-frac', type=float, default=0.8)
     parser.add_argument('--dev-frac', type=float, default=0.1)
     args = parser.parse_args()
@@ -143,6 +151,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         emb_dim=args.emb_dim,
         hidden_size=args.hidden_size,
+        context_size=args.context_size,
         train_frac=args.train_frac,
         dev_frac=args.dev_frac
     )

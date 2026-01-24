@@ -3,22 +3,24 @@ import torch
 import argparse
 from value import Value
 from modules import Model
-from data import load_vocab
 
-def generate(num_samples=10, emb_dim=None, hidden_size=None, data_file : str = None):
-
-    words, stoi, itos = load_vocab(data_file)
+def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
 
     config = np.load('weights/config.npy', allow_pickle=True).item()
- 
+    stoi = np.load('weights/stoi.npy', allow_pickle=True).item()
+    itos = np.load('weights/itos.npy', allow_pickle=True).item()
+
     if emb_dim is None:
         emb_dim = config['emb_dim']
 
     if hidden_size is None:
         hidden_size = config['hidden_size']
 
+    vocab_size = config['vocab_size']
+    context_size = config['context_size']
+
     C = Value(np.load('weights/embeddings.npy'))
-    model = Model(emb_dim * 2, [hidden_size, 27])
+    model = Model(emb_dim * context_size, [hidden_size, vocab_size])
 
     for i, layer in enumerate(model.layers):
 
@@ -36,19 +38,21 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, data_file : str = N
     for _ in range(num_samples):
 
         out = []
-        context = [0, 0]
+        context = [0] * context_size
 
         while True:
 
             xemb = Value(C.data[context].reshape(1, -1))
             logits = model(xemb)
-            probs = logits.softmax(dim=1).data[0]
+
+            logits_temp = Value(logits.data / temperature)
+            probs = logits_temp.softmax(dim=1).data[0]
             probs = probs / probs.sum()
 
             ix = torch.multinomial(torch.tensor(probs), 1).item()
 
             out.append(itos[ix])
-            context = [context[1], ix]
+            context = context[1:] + [ix]
 
             if ix == 0 and len(out) >= 2:
                 break
@@ -58,15 +62,15 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, data_file : str = N
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_file_path', type=str, default='data/names.txt')
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--emb_dim', type=int, default=None)
     parser.add_argument('--hidden_size', type=int, default=None)
+    parser.add_argument('--temperature', type=float, default=1.0)
     args = parser.parse_args()
 
     generate(
         num_samples=args.num_samples,
         emb_dim=args.emb_dim,
         hidden_size=args.hidden_size,
-        data_file=args.data_file_path
+        temperature=args.temperature
     )

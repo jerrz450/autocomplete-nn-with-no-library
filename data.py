@@ -26,24 +26,26 @@ def split_data(words, train_frac=0.8, dev_frac=0.1):
 
     return train_words, dev_words, test_words
 
-def build_dataset(words, stoi):
-
+def build_dataset(words, stoi, context_size=4):
+    
     xs, ys = [], []
-
+    
     for w in words:
-
         chs = ['.'] + list(w) + ['.']
+        
+        for i in range(len(chs) - context_size):
+            context = [stoi[chs[i+j]] for j in range(context_size)]
 
-        for ch1, ch2, ch3 in zip(chs, chs[1:], chs[2:]):
-
-            xs.append([stoi[ch1], stoi[ch2]])
-            ys.append(stoi[ch3])
-
+            target = stoi[chs[i + context_size]]
+            
+            xs.append(context)
+            ys.append(target)
+    
     return np.array(xs), np.array(ys)
 
-def dataloader(words, stoi, batch_size=32):
+def dataloader(words, stoi, batch_size=32, context_size=4):
 
-    xs, ys = build_dataset(words, stoi)
+    xs, ys = build_dataset(words, stoi, context_size)
 
     for i in range(0, len(xs), batch_size):
         yield xs[i:i+batch_size], ys[i:i+batch_size]
