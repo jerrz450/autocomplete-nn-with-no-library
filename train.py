@@ -30,6 +30,7 @@ def train(
     print(f"Dataset splits: {len(train_words)} train, {len(dev_words)} dev, {len(test_words)} test")
 
     C = Value(np.random.randn(vocab_size, emb_dim) * 0.01)
+
     model = Model(emb_dim * context_size, [hidden_size, vocab_size])
     loss_fn = CrossEntropyLoss()
 
@@ -41,6 +42,7 @@ def train(
     v = [np.zeros_like(p.data) for p in params]
 
     for epoch in range(epochs):
+
         total_loss = 0.0
         count = 0
 
@@ -62,6 +64,7 @@ def train(
             C.grad[xb.flatten()] += xemb.grad.reshape(-1, emb_dim)
 
             for i, p in enumerate(params):
+
                 m[i] = beta1 * m[i] + (1 - beta1) * p.grad
                 v[i] = beta2 * v[i] + (1 - beta2) * (p.grad ** 2)
                 m_hat = m[i] / (1 - beta1 ** (count + 1))
@@ -77,7 +80,9 @@ def train(
 
         dev_loss = 0.0
         dev_count = 0
+
         for xb, yb in dataloader(dev_words, stoi, batch_size=batch_size, context_size=context_size):
+
             xemb = Value(C.data[xb].reshape(len(xb), -1))
             logits = model(xemb)
             loss = loss_fn(logits, yb)
@@ -97,6 +102,7 @@ def train(
 
     test_loss = 0.0
     test_count = 0
+
     for xb, yb in dataloader(test_words, stoi, batch_size=batch_size, context_size=context_size):
         xemb = Value(C.data[xb].reshape(len(xb), -1))
         logits = model(xemb)

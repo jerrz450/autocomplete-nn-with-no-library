@@ -5,8 +5,13 @@ def load_vocab(filepath='names.txt'):
     words = open(filepath, 'r').read().splitlines()
 
     chars = sorted(list(set(''.join(words))))
-    stoi = {s:i+1 for i,s in enumerate(chars)}
-    stoi['.'] = 0
+    if '.' in chars:
+        chars.remove('.')
+
+    stoi = {'.': 0}
+    for i, s in enumerate(chars):
+        stoi[s] = i + 1
+
     itos = {i:s for s,i in stoi.items()}
 
     return words, stoi, itos

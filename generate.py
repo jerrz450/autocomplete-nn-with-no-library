@@ -38,11 +38,16 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
     for _ in range(num_samples):
 
         out = []
-        context = [0] * context_size
+        context = [0]
 
         while True:
 
-            xemb = Value(C.data[context].reshape(1, -1))
+            if len(context) < context_size:
+                ctx_padded = [0] * (context_size - len(context)) + context
+            else:
+                ctx_padded = context[-context_size:]
+
+            xemb = Value(C.data[ctx_padded].reshape(1, -1))
             logits = model(xemb)
 
             logits_temp = Value(logits.data / temperature)
@@ -51,11 +56,11 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
 
             ix = torch.multinomial(torch.tensor(probs), 1).item()
 
-            out.append(itos[ix])
-            context = context[1:] + [ix]
-
-            if ix == 0 and len(out) >= 2:
+            if ix == 0:
                 break
+
+            out.append(itos[ix])
+            context.append(ix)
 
         print(''.join(out))
 
