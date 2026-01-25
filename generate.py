@@ -4,23 +4,24 @@ import argparse
 from value import Value
 from modules import Model
 
-def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
+def load_artifacts():
 
     config = np.load('weights/config.npy', allow_pickle=True).item()
     stoi = np.load('weights/stoi.npy', allow_pickle=True).item()
     itos = np.load('weights/itos.npy', allow_pickle=True).item()
-
-    if emb_dim is None:
-        emb_dim = config['emb_dim']
-
-    if hidden_size is None:
-        hidden_size = config['hidden_size']
-
-    vocab_size = config['vocab_size']
-    context_size = config['context_size']
-
     C = Value(np.load('weights/embeddings.npy'))
-    model = Model(emb_dim * context_size, [hidden_size, vocab_size])
+
+    return config, stoi, itos, C
+
+def init_model(config, C, emb_dim=None, hidden_size=None):
+
+    emb_dim = emb_dim or config['emb_dim']
+    hidden_size = hidden_size or config['hidden_size']
+
+    model = Model(
+        emb_dim * config['context_size'],
+        [hidden_size, config['vocab_size']]
+    )
 
     for i, layer in enumerate(model.layers):
 
@@ -35,6 +36,12 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
         bn.running_var = np.load(f'weights/bn{i}_running_var.npy')
         bn.training = False
 
+    return model
+
+def generate(model, C, itos, config, num_samples=10, temperature=1.0):
+
+    context_size = config['context_size']
+
     for _ in range(num_samples):
 
         out = []
@@ -42,18 +49,13 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
 
         while True:
 
-            if len(context) < context_size:
-                ctx_padded = [0] * (context_size - len(context)) + context
-            else:
-                ctx_padded = context[-context_size:]
-
-            xemb = Value(C.data[ctx_padded].reshape(1, -1))
+            ctx = ([0] * (context_size - len(context)) + context)[-context_size:]
+            
+            xemb = Value(C.data[ctx].reshape(1, -1))
             logits = model(xemb)
 
             logits_temp = Value(logits.data / temperature)
             probs = logits_temp.softmax(dim=1).data[0]
-            probs = probs / probs.sum()
-
             ix = torch.multinomial(torch.tensor(probs), 1).item()
 
             if ix == 0:
@@ -64,6 +66,60 @@ def generate(num_samples=10, emb_dim=None, hidden_size=None, temperature=1.0):
 
         print(''.join(out))
 
+def predict(model, C, itos, stoi, config, temperature=1.0):
+
+    context_size = config['context_size']
+    full_context = []
+
+    while True:
+
+        command = yield
+
+        if command is None:
+            continue
+
+        if isinstance(command, tuple):
+            action, value = command
+
+            if action == 'reset':
+                full_context = []
+                yield ""
+                continue
+
+            elif action == 'set_text':
+                full_context = [stoi.get(c, 0) for c in value if c in stoi]
+                yield ""
+                continue
+
+        if command not in stoi:
+            yield ""
+            continue
+
+        char_lookup = stoi[command]
+        full_context.append(char_lookup)
+
+        suggestion = []
+        temp_context = full_context[:]
+
+        for _ in range(20):
+            ctx = ([0] * (context_size - len(temp_context)) + temp_context)[-context_size:]
+
+            xemb = Value(C.data[ctx].reshape(1, -1))
+            logits = model(xemb)
+
+            logits_temp = Value(logits.data / temperature)
+            probs = logits_temp.softmax(dim=1).data[0]
+            ix = torch.multinomial(torch.tensor(probs), 1).item()
+
+            if ix == 0:
+                break
+
+            suggestion.append(itos[ix])
+            temp_context.append(ix)
+
+        yield ''.join(suggestion)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -73,9 +129,14 @@ if __name__ == "__main__":
     parser.add_argument('--temperature', type=float, default=1.0)
     args = parser.parse_args()
 
+    config, stoi, itos, C = load_artifacts()
+    model = init_model(config, C, args.emb_dim, args.hidden_size)
+
     generate(
+        model,
+        C,
+        itos,
+        config,
         num_samples=args.num_samples,
-        emb_dim=args.emb_dim,
-        hidden_size=args.hidden_size,
         temperature=args.temperature
     )

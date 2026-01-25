@@ -7,6 +7,7 @@ setup(
     install_requires=[
         'numpy',
         'torch',
+        'keyboard',
     ],
     python_requires='>=3.7',
 )
