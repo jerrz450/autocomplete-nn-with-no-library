@@ -1,5 +1,5 @@
 import numpy as np
-from value import Value
+from .value import Value
 
 class CrossEntropyLoss:
     

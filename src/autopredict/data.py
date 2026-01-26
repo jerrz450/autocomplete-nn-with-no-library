@@ -1,6 +1,6 @@
 import numpy as np
 
-def load_vocab(filepath='names.txt'):
+def load_vocab(filepath='../data/names.txt'):
 
     words = open(filepath, 'r').read().splitlines()
 

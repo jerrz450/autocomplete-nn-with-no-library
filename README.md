@@ -36,7 +36,8 @@ autopredict/
 │       └── __init__.py   - Package initialization
 ├── scripts/
 │   ├── train.py          - Training script with CLI arguments
-│   └── generate.py       - Text generation and prediction
+│   ├── generate.py       - Text generation and prediction
+│   └── eval.py           - Evaluation metrics (accuracy, perplexity, top-k)
 ├── terminal/
 │   └── main.py           - Interactive autocomplete interface
 ├── data/                 - Training datasets
@@ -44,7 +45,7 @@ autopredict/
 ├── Dockerfile            - Docker container configuration
 ├── requirements.txt      - Python dependencies
 ├── setup.py              - Package setup configuration
-└── .dockerignore         - Docker build exclusions
+└── .dockerignore         
 ```
 
 ## Installation
@@ -174,6 +175,14 @@ The model learns to predict characters based on context. Performance depends on:
 - Regularization strength
 
 Example test loss: ~1.9 on 10k English words (random baseline: ~3.3)
+
+## Why I Built This
+
+Pretty simple:
+- Thought it was super cool to see how neural nets actually work under the hood
+- Learned a ton about gradient computation and backprop that PyTorch hides from you
+- It can suggest new words based on your input, which is neat
+- Building everything from scratch really makes you understand what's going on
 
 ## Acknowledgments
 
