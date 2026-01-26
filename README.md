@@ -176,6 +176,8 @@ The model learns to predict characters based on context. Performance depends on:
 
 Example test loss: ~1.9 on 10k English words (random baseline: ~3.3)
 
+![Training metrics](weights/training_metrics.png)
+
 ## Why I Built This
 
 Pretty simple:
