@@ -1,8 +1,13 @@
 import numpy as np
 import torch
 import argparse
-from value import Value
-from modules import Model
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.autopredict.value import Value
+from src.autopredict.modules import Model
 
 def load_artifacts():
 
@@ -79,19 +84,23 @@ def predict(model, C, itos, stoi, config, temperature=1.0):
             continue
 
         if isinstance(command, tuple):
+
             action, value = command
 
             if action == 'reset':
+
                 full_context = []
                 yield ""
                 continue
 
             elif action == 'set_text':
+
                 full_context = [stoi.get(c, 0) for c in value if c in stoi]
                 yield ""
                 continue
 
         if command not in stoi:
+
             yield ""
             continue
 
@@ -101,7 +110,9 @@ def predict(model, C, itos, stoi, config, temperature=1.0):
         suggestion = []
         temp_context = full_context[:]
 
+        # For suggestions generation
         for _ in range(20):
+
             ctx = ([0] * (context_size - len(temp_context)) + temp_context)[-context_size:]
 
             xemb = Value(C.data[ctx].reshape(1, -1))

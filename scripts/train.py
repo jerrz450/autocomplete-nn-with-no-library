@@ -1,9 +1,14 @@
 import numpy as np
 import argparse
-from value import Value
-from modules import Model
-from loss import CrossEntropyLoss
-from data import load_vocab, split_data, build_dataset, dataloader
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.autopredict.value import Value
+from src.autopredict.modules import Model
+from src.autopredict.loss import CrossEntropyLoss
+from src.autopredict.data import load_vocab, split_data, build_dataset, dataloader
 
 def train(
     training_set='names.txt',
