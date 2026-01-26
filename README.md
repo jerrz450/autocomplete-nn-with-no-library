@@ -167,13 +167,13 @@ The model learns to predict characters based on context. Performance depends on:
 
 Example test loss: ~1.9 on 10k English words (random baseline: ~3.3)
 
-## What This Project Demonstrates
+## Why I Built This
 
-- Building neural networks from scratch without ML frameworks
-- Understanding gradient computation and backpropagation
-- Implementing optimization algorithms manually
-- Character-level language modeling
-- Real-time inference and interactive applications
+Pretty simple:
+- Thought it was super cool to see how neural nets actually work under the hood
+- Learned a ton about gradient computation and backprop that PyTorch hides from you
+- It can suggest new words based on your input, which is neat
+- Building everything from scratch really makes you understand what's going on
 
 ## Acknowledgments
 
