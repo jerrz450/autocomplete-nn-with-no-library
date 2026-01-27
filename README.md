@@ -1,4 +1,4 @@
-# Neural Network Autocomplete from Scratch
+# Neural Network Autocomplete from Scratc
 
 Character-level language model and autocomplete engine built entirely from first principles using only NumPy. Inspired by Andrej Karpathy's "Neural Networks: Zero to Hero" course.
 
@@ -13,6 +13,18 @@ Pretty simple:
 ## Overview
 
 This project implements a complete neural network framework from scratch, including custom autograd engine, backpropagation, and optimization algorithms. The model predicts the next character in a sequence and provides real-time autocomplete suggestions.
+
+## Model Performance
+
+The model learns to predict characters based on context. Performance depends on:
+- Dataset size and quality
+- Context window size
+- Model capacity (hidden size, embedding dim)
+- Regularization strength
+
+Example test loss: ~1.9 on 10k English words (random baseline: ~3.3)
+
+![Training metrics](weights/training_metrics.png)
 
 ## Architecture
 
@@ -165,27 +177,6 @@ Implements automatic differentiation with:
 - Character-level tokenization
 - Sliding context window for n-gram modeling
 - Efficient batch iteration
-
-## Model Performance
-
-The model learns to predict characters based on context. Performance depends on:
-- Dataset size and quality
-- Context window size
-- Model capacity (hidden size, embedding dim)
-- Regularization strength
-
-Example test loss: ~1.9 on 10k English words (random baseline: ~3.3)
-
-![Training metrics](weights/training_metrics.png)
-
-## Why I Built This
-
-Pretty simple:
-- Thought it was super cool to see how neural nets actually work under the hood
-- Learned a ton about gradient computation and backprop that PyTorch hides from you
-- It can suggest new words based on your input, which is neat
-- Building everything from scratch really makes you understand what's going on
-
 ## Acknowledgments
 
 Inspired by Andrej Karpathy's course on building neural networks from scratch.
