@@ -1,6 +1,6 @@
 # Neural Network Autocomplete from Scratc
 
-Character-level language model and autocomplete engine built entirely from first principles using only NumPy. Inspired by Andrej Karpathy's "Neural Networks: Zero to Hero" course.
+Character-level language model and autocomplete engine built entirely from first principles using only NumPy. 
 
 ## Why I Built This
 
