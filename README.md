@@ -1,4 +1,4 @@
-# Neural Network Autocomplete from Scratc
+# Neural Network Autocomplete from Scratch
 
 Character-level language model and autocomplete engine built entirely from first principles using only NumPy. 
 
